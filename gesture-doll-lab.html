@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1026">
+<title>掌心宇宙 · AI 手势 3D 人偶</title>
+<style>
+:root{--cyan:#78ebff;--pink:#ff9bcc;--muted:#b0b7db}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#090e22;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+body{touch-action:none}
+#stage{position:fixed;inset:0;touch-action:none}
+.top{position:fixed;z-index:3;top:calc(env(safe-area-inset-top) + 14px);left:16px;right:16px;display:flex;align-items:flex-start;justify-content:space-between;pointer-events:none;gap:12px}
+.title small{color:var(--cyan);font-size:9px;letter-spacing:3px;font-weight:900}
+h1{font-size:clamp(21px,4vw,31px);letter-spacing:-1px;margin:3px 0}.sub{font-size:11px;color:var(--muted)}
+.glass{background:rgba(24,31,60,.72);border:1px solid #c7cdff30;border-radius:17px;box-shadow:0 12px 36px #0004;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.status{padding:9px 12px;font-size:11px;line-height:1.9;min-width:127px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#f8b96d;box-shadow:0 0 9px #ffb675;margin-right:5px}.dot.on{background:#67ffc1;box-shadow:0 0 10px #67ffc1}
+.hud{position:fixed;right:16px;top:calc(env(safe-area-inset-top) + 115px);width:210px;z-index:4;padding:12px}
+.kicker{font-size:9px;color:var(--cyan);font-weight:900;letter-spacing:1.6px}#gestureName{font-size:19px;font-weight:900;margin:4px 0}#gestureHint{font-size:11px;color:var(--muted);line-height:1.5}
+.bar{height:3px;background:#424864;border-radius:5px;overflow:hidden;margin-top:10px}#barFill{height:100%;width:0;background:linear-gradient(90deg,#9a96ff,#73eeff);transition:width .18s}
+.camera{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 92px);left:16px;width:clamp(145px,24vw,220px);aspect-ratio:4/3;z-index:4;overflow:hidden;background:linear-gradient(130deg,#1b2347,#090e22);border:1px solid #74eaff70;border-radius:16px;box-shadow:0 15px 40px #0007}
+.camera video,.camera canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.camera.mirror video,.camera.mirror canvas{transform:scaleX(-1)}#video{opacity:.72}
+.camera-label{position:absolute;top:7px;left:7px;font-size:9px;background:#070b19d9;padding:5px 8px;border-radius:6px;font-weight:800}
+#cameraEmpty{position:absolute;inset:0;display:grid;place-content:center;text-align:center;gap:8px;font-size:11px;color:#a8b5de}#cameraEmpty span{font-size:26px}
+.tools{position:fixed;z-index:6;right:14px;bottom:calc(env(safe-area-inset-bottom) + 91px);display:grid;gap:8px}
+button{cursor:pointer;border:1px solid #ffffff28;color:white;background:#273152d9;border-radius:14px;min-height:45px;padding:0 12px;font-size:12px;font-weight:800;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+button:active{transform:scale(.96)}button:disabled{opacity:.5}
+.tools button{width:43px;height:43px;padding:0;font-size:20px}.controls{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 15px);z-index:6;display:flex;justify-content:center;gap:7px}
+.primary{color:#172139;background:linear-gradient(110deg,#80eeff,#b7abff 67%,#ffb3dc);border:none;box-shadow:0 7px 24px #86dcff44}
+#stopBtn{display:none}#toast{position:fixed;z-index:11;top:calc(env(safe-area-inset-top) + 95px);left:50%;transform:translateX(-50%);max-width:calc(100% - 20px);padding:10px 15px;text-align:center;background:#e4edff;color:#192340;border-radius:12px;box-shadow:0 10px 40px #0008;font-size:12px;font-weight:800;opacity:0;pointer-events:none;transition:opacity .2s}#toast.on{opacity:1}
+#help{position:fixed;z-index:20;inset:0;background:#020714c9;backdrop-filter:blur(12px);display:none;place-items:center;padding:14px}#help.on{display:grid}
+.help-card{padding:22px;width:min(500px,100%);max-height:82dvh;overflow:auto}.help-card h2{margin:0 0 9px}.help-card p{font-size:12px;color:var(--muted);line-height:1.7}
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}.help-grid div{border:1px solid #ffffff20;background:#ffffff0c;border-radius:12px;padding:12px 9px;font-size:12px;line-height:1.7}
+.help-grid b{color:var(--cyan)}.help-grid em{font-size:11px;color:var(--muted);font-style:normal}
+#modelFile{display:none}
+@media(max-width:590px){.top{left:11px;right:11px}.status{padding:8px;min-width:110px;font-size:10px}.sub{font-size:10px}.hud{right:12px;top:calc(env(safe-area-inset-top) + 100px);width:160px;padding:10px}#gestureName{font-size:16px}.camera{left:11px;bottom:calc(env(safe-area-inset-bottom) + 89px);width:143px}.tools{right:11px}.controls{gap:5px}.controls button{padding:0 9px;font-size:11px;min-height:45px}#resetBtn{display:none}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="stage"></div>
+<header class="top"><div class="title"><small>PALM UNIVERSE / LAB 01</small><h1>掌心宇宙 ✦</h1><div class="sub">AI 双手追踪 · 3D 人偶互动 · v1.1</div></div><div class="status glass"><div><span id="dot" class="dot"></span><b id="status">触屏试玩中</b></div><div>🖐 <b id="hands">0</b> 只手 · <b id="fps">--</b> FPS</div><div id="engine">MEDIAPIPE / 待机</div></div></header>
+<section class="hud glass" aria-live="polite"><div class="kicker">LIVE GESTURE</div><div id="gestureName">等你施展魔法</div><div id="gestureHint">先用手指拖动人偶试玩</div><div class="bar"><div id="barFill"></div></div></section>
+<div id="camera" class="camera mirror"><video id="video" playsinline muted autoplay></video><canvas id="trace"></canvas><div class="camera-label">● HAND TRACKING</div><div id="cameraEmpty"><span>📷</span>启动后显示<br>手部骨架</div></div>
+<aside class="tools"><button id="helpBtn" title="手势说明">❔</button><button id="switchBtn" title="切换前后摄像头">🔄</button><button id="colorBtn" title="给人偶换颜色">🎨</button><button id="modelBtn" title="上传 GLB 人偶">📦</button><button id="resetSide" title="重置">⟲</button></aside>
+<nav class="controls"><button id="startBtn" class="primary">📷 启动 AI 手势</button><button id="stopBtn">■ 关闭摄像头</button><button id="danceBtn">✌️ 跳舞</button><button id="jumpBtn">✨ 跳跃</button><button id="resetBtn">重置</button></nav>
+<input type="file" id="modelFile" accept=".glb,model/gltf-binary">
+<div id="toast" role="status"></div>
+<section id="help"><div class="help-card glass"><h2>你的手就是魔法棒 ✨</h2><p>使用 Google MediaPipe 官方 Gesture Recognizer，双手各有 21 个实时追踪点；首次加载需下载 AI 模型。</p><div class="help-grid">
+<div><b>🖐 张开手掌</b><br><em>上下左右移动 → 旋转人偶</em></div>
+<div><b>👌 单手捏合</b><br><em>捏住移动 → 隔空拖拽</em></div>
+<div><b>👌👌 双手捏合</b><br><em>分开缩放 / 扭转方向</em></div>
+<div><b>✊ 握拳</b><br><em>停留约半秒 → 跳跃</em></div>
+<div><b>✌️ 胜利手势</b><br><em>停留约半秒 → 跳舞</em></div>
+<div><b>👍 / 🤟</b><br><em>点赞或摇滚 → 撒花</em></div>
+<div><b>☝️ 指向天空</b><br><em>打招呼 / 挥手</em></div>
+<div><b>👆 触屏</b><br><em>单指旋转、双指缩放、双击跳跃</em></div>
+</div><p>点右侧 📦 可上传自己的 GLB 3D 人偶。若 GLB 没有骨骼动画，整个人偶仍可移动、旋转、跳跃。</p><button class="primary" id="closeHelp" style="width:100%">我知道啦，开始玩！</button><p style="text-align:center">识别在浏览器本地进行；本页面不会上传摄像头画面。</p></div></section>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+const $=id=>document.getElementById(id),clamp=THREE.MathUtils.clamp,lerp=THREE.MathUtils.lerp;
+const video=$('video'),canvas=$('trace'),ctx=canvas.getContext('2d');
+let scene,camera,renderer,ring,shadow,actor,avatar,mixer=null,imported=null;
+let recognizer=null,stream=null,starting=false,active=false,facing='user';
+let lastInfer=0,lastVideoTime=-1,lastTick=performance.now(),fpsFrames=0,fpsSince=lastTick;
+let mode='',anchor=null,candidate='',candidateSince=0,lastAction=0;
+let target={x:0,y:0,yaw:.13,pitch:0,scale:1};
+let jumpAt=-99999,danceUntil=0,cheerUntil=0,waveUntil=0,confetti=[],costume=0,timer=0,lastTap=0;
+const palette=[['#9997ff','#665fe5'],['#ffafc5','#e66c9e'],['#91eacf','#39bca0'],['#ffcf83','#e29b50']];
+const links=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+function say(msg,ms=2400){const e=$('toast');e.textContent=msg;e.classList.add('on');clearTimeout(timer);timer=setTimeout(()=>e.classList.remove('on'),ms)}
+function setStatus(msg,on=false){$('status').textContent=msg;$('dot').classList.toggle('on',on)}
+function setGesture(a,b,score=0){$('gestureName').textContent=a;$('gestureHint').textContent=b;$('barFill').style.width=Math.round(score*100)+'%'}
+function mat(c,metalness=0){return new THREE.MeshStandardMaterial({color:c,roughness:.57,metalness})}
+function sphere(parent,r,m,x,y,z,sx=1,sy=1,sz=1){const o=new THREE.Mesh(new THREE.SphereGeometry(r,20,16),m);o.position.set(x,y,z);o.scale.set(sx,sy,sz);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+function makeAvatar(){
+ const root=new THREE.Group(),skin=mat('#f5bdab'),hair=mat('#1b2040'),trim=mat(palette[costume][1]),shirt=mat(palette[costume][0]),trousers=mat('#39436b'),white=mat('#f4f8ff'),dark=mat('#1d2846');
+ sphere(root,.57,shirt,0,1.62,0,1,1,.76);sphere(root,.38,trim,0,1.15,0,1,.65,.8);
+ sphere(root,.56,skin,0,2.79,.02,1,1,.95);sphere(root,.57,hair,0,3.08,0,1.03,.54,.94);
+ sphere(root,.12,skin,-.53,2.78,0,.5,.97,.65);sphere(root,.12,skin,.53,2.78,0,.5,.97,.65);
+ for(let i=0;i<5;i++){const t=new THREE.Mesh(new THREE.ConeGeometry(.15,.3,5),hair);t.position.set(-.34+i*.17,3.26,.38);t.rotation.z=.36-i*.12;root.add(t)}
+ for(const x of [-.19,.19]){sphere(root,.075,dark,x,2.8,.555,.7,.9,.46);sphere(root,.024,white,x-.011,2.82,.592);sphere(root,.10,mat('#ef94a1'),x*2,2.66,.49,1,.42,.5)}
+ const smile=new THREE.CatmullRomCurve3([new THREE.Vector3(-.1,2.62,.598),new THREE.Vector3(0,2.585,.605),new THREE.Vector3(.1,2.62,.598)]);root.add(new THREE.Mesh(new THREE.TubeGeometry(smile,14,.014,6,false),dark));
+ const badge=new THREE.Mesh(new THREE.OctahedronGeometry(.085,0),white);badge.position.set(0,1.78,.48);root.add(badge);
+ const arms=[],legs=[];
+ for(const dir of [-1,1]){
+  const arm=new THREE.Group();arm.position.set(dir*.59,2.06,0);root.add(arm);arms.push(arm);
+  const sleeve=sphere(arm,.23,shirt,dir*.09,-.35,0,.95,1.73,.86);sleeve.rotation.z=dir*.1;
+  sphere(arm,.17,skin,dir*.16,-.76,.02,1,1.03,.93);
+  const leg=new THREE.Group();leg.position.set(dir*.27,1.11,0);root.add(leg);legs.push(leg);
+  sphere(leg,.22,trousers,0,-.42,0,.91,1.8,.9);
+  sphere(leg,.22,white,0,-.91,.14,1.2,.65,1.6);
+  sphere(leg,.21,mat('#5966a7'),0,-1.01,.16,1.25,.23,1.8);
+ }
+ return {root,arms,legs,shirt,trim};
+}
+function initScene(){
+ scene=new THREE.Scene();scene.background=new THREE.Color('#0a1026');scene.fog=new THREE.FogExp2('#0a1026',.042);
+ camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,90);camera.position.set(0,2.45,innerWidth<560?9.3:7.9);camera.lookAt(0,1.6,0);
+ renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.65));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.4;
+ $('stage').appendChild(renderer.domElement);renderer.domElement.style.touchAction='none';
+ scene.add(new THREE.HemisphereLight('#cbd9ff','#4b3276',2.2));
+ const sunlight=new THREE.DirectionalLight('#ffe6f3',3.0);sunlight.position.set(-3,7,5);sunlight.castShadow=true;sunlight.shadow.mapSize.set(1024,1024);sunlight.shadow.camera.left=-6;sunlight.shadow.camera.right=6;sunlight.shadow.camera.top=7;sunlight.shadow.camera.bottom=-6;scene.add(sunlight);
+ const rim=new THREE.PointLight('#6eefff',70,18);rim.position.set(3,4,-2);scene.add(rim);
+ const platform=new THREE.Mesh(new THREE.CylinderGeometry(2.35,2.5,.25,64),mat('#273156',.4));platform.position.y=-.21;platform.receiveShadow=true;scene.add(platform);
+ const top=new THREE.Mesh(new THREE.CylinderGeometry(2.35,2.35,.02,64),mat('#38416d',.4));top.position.y=-.078;top.receiveShadow=true;scene.add(top);
+ ring=new THREE.Mesh(new THREE.TorusGeometry(2.32,.027,8,86),new THREE.MeshBasicMaterial({color:'#76f7fa'}));ring.rotation.x=Math.PI/2;ring.position.y=-.056;scene.add(ring);
+ shadow=new THREE.Mesh(new THREE.CircleGeometry(.68,46),new THREE.MeshBasicMaterial({color:'#050818',transparent:true,opacity:.4,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=-.058;scene.add(shadow);
+ actor=new THREE.Group();scene.add(actor);avatar=makeAvatar();actor.add(avatar.root);
+ const stars=[];for(let i=0;i<140;i++)stars.push((Math.random()-.5)*30,(Math.random()-.5)*19+3,-Math.random()*18-6);
+ const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(stars,3));scene.add(new THREE.Points(geo,new THREE.PointsMaterial({color:'#9fb1fa',size:.05,transparent:true,opacity:.6})));
+ pointerControls(renderer.domElement);
+ addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.position.z=innerWidth<560?9.3:7.9;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+ requestAnimationFrame(frame);
+}
+function particles(n=22,hearts=false){
+ const colors=['#7ceeff','#a7a1ff','#fff4a8','#ff9fcb','#9cffd2'];
+ for(let i=0;i<n;i++){
+  const mesh=new THREE.Mesh(new THREE.OctahedronGeometry(.055+Math.random()*.055),new THREE.MeshBasicMaterial({color:colors[i%colors.length],transparent:true,opacity:1,depthWrite:false}));
+  mesh.position.set(actor.position.x+(Math.random()-.5)*1.1,actor.position.y+1.5+Math.random()*1.4,(Math.random()-.5)*1.4);scene.add(mesh);
+  confetti.push({mesh,v:new THREE.Vector3((Math.random()-.5)*3,hearts?1:2+Math.random()*2,(Math.random()-.5)*2),life:1.0+Math.random(),hearts});
+ }
+}
+function jump(){jumpAt=performance.now();particles();say('✨ 蹦！')}
+function dance(){danceUntil=performance.now()+4200;particles(30);say('✌️ 舞蹈模式！')}
+function celebrate(){cheerUntil=performance.now()+3000;particles(38,true);say('💖 太棒了！')}
+function wave(){waveUntil=performance.now()+2400;say('👋 Hi~')}
+function reset(){target={x:0,y:0,yaw:.13,pitch:0,scale:1};mode='';anchor=null;say('视角已重置')}
+function frame(now){
+ const dt=Math.min(.05,(now-lastTick)/1000||.016);lastTick=now;
+ if(active&&recognizer&&video.readyState>=2&&document.visibilityState==='visible'&&now-lastInfer>80&&lastVideoTime!==video.currentTime){
+  lastInfer=now;lastVideoTime=video.currentTime;try{const r=recognizer.recognizeForVideo(video,now);recognize(r,now);drawHands(r.landmarks||[])}catch(e){console.warn('识别帧失败',e)}
+ }
+ const leap=(now-jumpAt)/840,j=leap>=0&&leap<1?Math.sin(leap*Math.PI)*1.25:0;
+ const ease=1-Math.exp(-dt*9);
+ actor.position.x=lerp(actor.position.x,target.x,ease);actor.position.y=lerp(actor.position.y,target.y+j,ease);
+ actor.rotation.y=lerp(actor.rotation.y,target.yaw,ease);actor.rotation.x=lerp(actor.rotation.x,target.pitch,ease);
+ const sz=lerp(actor.scale.x,target.scale,ease);actor.scale.setScalar(sz);
+ const t=now*.003,dancing=now<danceUntil;
+ if(avatar){avatar.root.position.y=Math.sin(t*2)*.026+(dancing?Math.abs(Math.sin(t*5))*.08:0);avatar.root.rotation.z=dancing?Math.sin(t*4)*.1:Math.sin(t)*.015;
+ avatar.arms[0].rotation.z=dancing?Math.sin(t*5)*.98-.32:now<cheerUntil?1.25:now<waveUntil?1.2+Math.sin(t*13)*.34:.14+Math.sin(t*1.5)*.04;
+ avatar.arms[1].rotation.z=dancing?-Math.cos(t*5)*.98+.32:now<cheerUntil?-1.25:-.14-Math.sin(t*1.5)*.04;
+ avatar.legs[0].rotation.x=dancing?Math.sin(t*7)*.35:0;avatar.legs[1].rotation.x=dancing?-Math.sin(t*7)*.35:0}
+ if(mixer)mixer.update(dt);
+ shadow.position.x=actor.position.x;shadow.scale.setScalar(Math.max(.5,1-j*.18));shadow.material.opacity=.40-j*.16;ring.material.color.setHSL(.53+Math.sin(t)*.07,1,.67);
+ for(let i=confetti.length-1;i>=0;i--){const p=confetti[i];p.life-=dt;p.mesh.position.addScaledVector(p.v,dt);p.v.y-=dt*(p.hearts?.2:2);p.mesh.rotation.y+=dt*5;p.mesh.material.opacity=clamp(p.life/.45,0,1);if(p.life<=0){scene.remove(p.mesh);p.mesh.material.dispose();p.mesh.geometry.dispose();confetti.splice(i,1)}}
+ renderer.render(scene,camera);
+ fpsFrames++;if(now-fpsSince>950){$('fps').textContent=Math.round(fpsFrames*1000/(now-fpsSince));fpsSince=now;fpsFrames=0}
+ requestAnimationFrame(frame);
+}
+const len=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function stable(name,now,hold=420){if(candidate!==name){candidate=name;candidateSince=now;return false}if(now-candidateSince>=hold&&now-lastAction>1750){lastAction=now;candidateSince=now;return true}return false}
+function recognize(result,now){
+ const hands=(result.landmarks||[]).map((p,i)=>{const g=result.gestures?.[i]?.[0]||{};return {p,name:g.categoryName||'None',score:g.score||0,pinch:len(p[4],p[8])/Math.max(.06,len(p[5],p[17]))<.40,x:facing==='user'?1-p[8].x:p[8].x,y:p[8].y,palmX:facing==='user'?1-p[9].x:p[9].x,palmY:p[9].y}});
+ $('hands').textContent=hands.length;
+ if(!hands.length){mode='';anchor=null;candidate='';setGesture('手呢？👀','请把手放进摄像头画面',0);return}
+ const pinches=hands.filter(h=>h.pinch);
+ if(pinches.length>=2){
+  const a=pinches[0],b=pinches[1],gap=Math.max(.05,len(a,b)),angle=Math.atan2(b.y-a.y,b.x-a.x);
+  if(mode!=='dual'){mode='dual';anchor={gap,angle,scale:target.scale,yaw:target.yaw}}
+  target.scale=clamp(anchor.scale*gap/anchor.gap,.5,2.25);
+  let diff=angle-anchor.angle;while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Math.PI)diff+=Math.PI*2;target.yaw=anchor.yaw-diff*1.5;
+  setGesture('👌👌 双手操控','拉开缩放 · 扭转旋转',.99);candidate='';return;
+ }
+ const hand=pinches[0]||hands.reduce((a,b)=>a.score>=b.score?a:b);
+ if(hand.pinch){
+  if(mode!=='drag'){mode='drag';anchor={x:hand.x,y:hand.y,worldX:target.x,worldY:target.y}}
+  target.x=clamp(anchor.worldX+(hand.x-anchor.x)*5.2,-1.95,1.95);
+  target.y=clamp(anchor.worldY+(anchor.y-hand.y)*4,-.1,1.65);
+  setGesture('👌 空中抓取','捏住移动，把人偶拖到别处',.99);candidate='';return;
+ }
+ if(hand.name==='Open_Palm'){
+  if(mode!=='palm'){mode='palm';anchor={x:hand.palmX,y:hand.palmY,yaw:target.yaw,pitch:target.pitch}}
+  target.yaw=anchor.yaw+(hand.palmX-anchor.x)*4.5;
+  target.pitch=clamp(anchor.pitch+(hand.palmY-anchor.y)*1.4,-.5,.5);
+  setGesture('🖐 掌心操控','移动张开的手，旋转人偶',hand.score);candidate='';return;
+ }
+ mode='';anchor=null;
+ const labels={Closed_Fist:'✊ 握拳',Victory:'✌️ 胜利手势',Thumb_Up:'👍 点赞',Thumb_Down:'👎 向下',Pointing_Up:'☝️ 指向天空',ILoveYou:'🤟 摇滚手势',None:'正在识别'};
+ setGesture(labels[hand.name]||'正在识别','保持约半秒，触发动作',hand.score);
+ if(hand.name==='Closed_Fist'&&stable('fist',now,400))jump();
+ else if(hand.name==='Victory'&&stable('victory',now,470))dance();
+ else if(['Thumb_Up','ILoveYou'].includes(hand.name)&&stable('cheer',now,470))celebrate();
+ else if(hand.name==='Pointing_Up'&&stable('point',now,470))wave();
+ else if(!['Closed_Fist','Victory','Thumb_Up','ILoveYou','Pointing_Up'].includes(hand.name))candidate='';
+}
+function drawHands(hands){
+ if(!video.videoWidth)return;
+ if(canvas.width!==video.videoWidth||canvas.height!==video.videoHeight){canvas.width=video.videoWidth;canvas.height=video.videoHeight}
+ const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
+ hands.forEach((p,i)=>{ctx.strokeStyle=i?'#ffa8eb':'#7cefff';ctx.lineWidth=3.5;ctx.lineCap='round';
+  for(const [a,b] of links){ctx.beginPath();ctx.moveTo(p[a].x*w,p[a].y*h);ctx.lineTo(p[b].x*w,p[b].y*h);ctx.stroke()}
+  p.forEach((v,k)=>{ctx.beginPath();ctx.fillStyle=k===4||k===8?'#ffea9c':'#f7ffff';ctx.arc(v.x*w,v.y*h,k===4||k===8?6:3.8,0,Math.PI*2);ctx.fill()})
+ });
+}
+async function loadAI(){
+ if(recognizer)return;
+ $('engine').textContent='正在加载手势引擎…';say('首次加载模型可能要等十几秒',4000);
+ // 使用官方发布的原始 ESM 文件，避开第三方 CDN 的 +esm 自动打包。
+ // Safari 若无法加载一个 CDN，会自动尝试另一个 CDN 和对应的 WASM 文件。
+ const origins=[
+  'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1',
+  'https://unpkg.com/@mediapipe/tasks-vision@1.0.1'
+ ];
+ const models=[
+  'https://storage.googleapis.com/mediapipe-tasks/gesture_recognizer/gesture_recognizer.task',
+  'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task'
+ ];
+ const failures=[];
+ for(const origin of origins){
+  try{
+   const mp=await import(origin+'/vision_bundle.mjs');
+   if(!mp.GestureRecognizer||!mp.FilesetResolver)throw Error('下载的模块缺少手势识别 API');
+   $('engine').textContent='正在加载 WASM / AI 模型…';
+   const wasm=await mp.FilesetResolver.forVisionTasks(origin+'/wasm');
+   for(const modelAssetPath of models){
+    const options={runningMode:'VIDEO',numHands:2};
+    try{
+     recognizer=await mp.GestureRecognizer.createFromOptions(wasm,{...options,baseOptions:{modelAssetPath,delegate:'GPU'}});
+     $('engine').textContent='MEDIAPIPE · GPU';return;
+    }catch(gpuError){
+     console.warn('GPU 模式启动失败，尝试 CPU',gpuError);
+     try{
+      recognizer=await mp.GestureRecognizer.createFromOptions(wasm,{...options,baseOptions:{modelAssetPath,delegate:'CPU'}});
+      $('engine').textContent='MEDIAPIPE · CPU';return;
+     }catch(cpuError){failures.push(String(cpuError?.message||cpuError));}
+    }
+   }
+  }catch(error){console.warn('手势模块下载源不可用:',origin,error);failures.push(String(error?.message||error));}
+ }
+ throw new Error('手势模块加载失败，请换 Safari 打开 HTTPS 网页或切换网络。'+failures.slice(-1)[0]);
+}
+async function start(){
+ if(active||starting)return;
+ if(!navigator.mediaDevices?.getUserMedia){say('摄像头需要 HTTPS 网页；请上传 GitHub Pages 再试',6000);return}
+ starting=true;$('startBtn').disabled=true;setStatus('正在启动…');
+ try{
+  await loadAI();
+  stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facing},width:{ideal:640},height:{ideal:480},frameRate:{ideal:24,max:30}}});
+  video.srcObject=stream;await video.play();active=true;lastVideoTime=-1;
+  $('cameraEmpty').style.display='none';$('camera').classList.toggle('mirror',facing==='user');
+  $('startBtn').style.display='none';$('stopBtn').style.display='inline-block';setStatus('AI 正在识别',true);
+  setGesture('举起你的手 ✨','试试 ✌️、👌、✊ 或双手操作');say('🟢 AI 手势识别已启动');
+ }catch(e){console.error(e);stop();setStatus('启动失败');say(e?.name==='NotAllowedError'?'请在 Safari 设置里允许访问摄像头':'AI 启动失败：'+String(e.message||e).slice(0,80),6500)}
+ finally{starting=false;$('startBtn').disabled=false}
+}
+function stop(){
+ active=false;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+ video.srcObject=null;ctx.clearRect(0,0,canvas.width,canvas.height);$('cameraEmpty').style.display='grid';
+ $('startBtn').style.display='inline-block';$('stopBtn').style.display='none';$('hands').textContent='0';
+ mode='';anchor=null;setStatus('触屏试玩中');setGesture('摄像头已关闭','可触屏玩，或重新启动 AI');
+}
+async function switchCamera(){facing=facing==='user'?'environment':'user';if(active){stop();await start()}else say(facing==='user'?'已切换前置摄像头':'已切换后置摄像头')}
+function pointerControls(el){
+ const points=new Map();el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);points.set(e.pointerId,{x:e.clientX,y:e.clientY});let now=performance.now();if(now-lastTap<285&&points.size===1)jump();lastTap=now});
+ el.addEventListener('pointermove',e=>{if(!points.has(e.pointerId))return;const old=points.get(e.pointerId);
+  if(points.size===1){target.yaw+=(e.clientX-old.x)*.009;target.pitch=clamp(target.pitch+(e.clientY-old.y)*.004,-.55,.55)}
+  else if(points.size===2){const other=[...points.entries()].find(([id])=>id!==e.pointerId)?.[1];if(other){const before=Math.hypot(old.x-other.x,old.y-other.y),after=Math.hypot(e.clientX-other.x,e.clientY-other.y);if(before>18)target.scale=clamp(target.scale*after/before,.5,2.25)}}
+  points.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ });
+ const end=e=>points.delete(e.pointerId);el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+ addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();jump()}if(e.code==='KeyD')dance();if(e.code==='ArrowRight')target.yaw+=.2;if(e.code==='ArrowLeft')target.yaw-=.2});
+}
+function recolor(){costume=(costume+1)%palette.length;avatar.shirt.color.set(palette[costume][0]);avatar.trim.color.set(palette[costume][1]);say(['💜 银河紫','💗 樱花粉','💚 薄荷绿','💛 日落橙'][costume])}
+async function importModel(file){
+ if(!file)return;if(!file.name.toLowerCase().endsWith('.glb')){say('只支持 .glb 文件');return}
+ const url=URL.createObjectURL(file);
+ try{
+  const gltf=await new GLTFLoader().loadAsync(url),model=gltf.scene,box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3());
+  if(!Number.isFinite(size.y)||size.y<=.0001)throw Error('模型尺寸无效');
+  model.position.set(-box.getCenter(new THREE.Vector3()).x,-box.min.y,-box.getCenter(new THREE.Vector3()).z);
+  const root=new THREE.Group();root.add(model);root.scale.setScalar(3.33/Math.max(size.y,size.x*.82,size.z*.82));
+  if(imported)actor.remove(imported);avatar.root.visible=false;imported=root;actor.add(root);
+  mixer=null;if(gltf.animations.length){mixer=new THREE.AnimationMixer(model);mixer.clipAction(gltf.animations[0]).play()}
+  say('📦 载入成功：'+file.name,4200);
+ }catch(e){console.error(e);say('模型载入失败：'+String(e.message||e),5000)}
+ finally{URL.revokeObjectURL(url);$('modelFile').value=''}
+}
+$('startBtn').onclick=start;$('stopBtn').onclick=stop;$('switchBtn').onclick=switchCamera;
+$('danceBtn').onclick=dance;$('jumpBtn').onclick=jump;$('resetBtn').onclick=reset;$('resetSide').onclick=reset;$('colorBtn').onclick=recolor;
+$('modelBtn').onclick=()=>$('modelFile').click();$('modelFile').onchange=e=>importModel(e.target.files?.[0]);
+$('helpBtn').onclick=()=>$('help').classList.add('on');$('closeHelp').onclick=()=>$('help').classList.remove('on');$('help').onclick=e=>{if(e.target===$('help'))$('help').classList.remove('on')};
+addEventListener('pagehide',()=>{if(stream)stream.getTracks().forEach(t=>t.stop())});
+try{initScene();setStatus('触屏试玩中')}catch(e){console.error(e);setStatus('3D 初始化失败');say('3D 引擎加载失败，请检查网络并刷新',6000)}
+</script>
+</body>
+</html>
