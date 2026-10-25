@@ -1,0 +1,25 @@
+{
+  "site": {
+    "title": "FLORA",
+    "subtitle": "\u8f7b\u634f\u6307\u5c16\uff0c\u8ba9\u9e22\u5c3e\u82b1\u968f\u4f60\u7efd\u653e \u00b7 Iris in Bloom"
+  },
+  "artworks": [
+    {
+      "id": "lavender-iris",
+      "label": "Lavender Iris",
+      "framePath": "./frames/lavender-iris",
+      "frameCount": 60
+    }
+  ],
+  "controls": [
+    {
+      "type": "pinch",
+      "invert": false,
+      "instruction": "\u62c7\u6307\u4e0e\u98df\u6307\u8f7b\u8f7b\u634f\u5408\u6216\u5f20\u5f00\uff0c\u63a7\u5236\u9e22\u5c3e\u82b1\u7684\u5f00\u5408\u3002"
+    }
+  ],
+  "navigation": {
+    "verticalSwipe": false,
+    "loop": false
+  }
+}

@@ -5,3 +5,7 @@ __pycache__/
 *.pyc
 *.pyo
 tmp/
+review/
+FLORA-iris-gesture-animation.zip
+gesture-sequence/FLORA-iris-standalone.html
+gesture-sequence/frames/.*.extract-*/

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5efe8" />
+  <meta name="description" content="用手指拖动控制鸢尾花从花苞到盛开的60帧连续动画。" />
+  <title>FLORA · 指尖绽放 · 动画预览</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; min-height: 100dvh; color: #40334a; background: radial-gradient(ellipse 90% 44% at 50% -15%, #e6d6ea 0%, transparent 100%), #f5efe8; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    a { color: #6d478b; }
+    .shell { width: min(920px, calc(100% - 28px)); margin: 0 auto; padding: max(26px, env(safe-area-inset-top)) 0 max(30px, env(safe-area-inset-bottom)); }
+    .brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 23px; }
+    .brandmark { font-family: Georgia, "Times New Roman", serif; letter-spacing: .24em; font-size: clamp(21px, 4vw, 30px); font-weight: 500; }
+    .status { color: #7a6284; font-size: 12px; letter-spacing: .07em; background: #fff8; border: 1px solid #d9c9dc; padding: 7px 12px; border-radius: 999px; white-space: nowrap; }
+    .title { text-align: center; font-family: Georgia, "Songti SC", serif; font-size: clamp(28px, 6vw, 43px); font-weight: 400; letter-spacing: .13em; margin: 2px 0 9px; }
+    .subtitle { color: #816e82; text-align: center; line-height: 1.6; font-size: 13px; margin: 0 0 22px; }
+    .flower-card { border: 1px solid #fff9; overflow: hidden; padding: 10px; background: #fff9; border-radius: 27px; box-shadow: 0 20px 64px #55405c1b, 0 2px 10px #33223910; }
+    .flower-wrap { position: relative; aspect-ratio: 4/3; overflow: hidden; border-radius: 19px; background: #d3c4b7; touch-action: none; user-select: none; -webkit-user-select: none; cursor: ew-resize; }
+    canvas { display: block; width: 100%; height: 100%; pointer-events: none; }
+    .hint { pointer-events: none; position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); border-radius: 99px; white-space: nowrap; padding: 8px 14px; color: #faf4ed; background: #45354b9a; backdrop-filter: blur(9px); font-size: clamp(11px, 2vw, 13px); transition: opacity .5s; }
+    .hint.hide { opacity: 0; }
+    .loading { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; color: #6a5270; background: #ded0c3; font-size: 13px; }
+    .loading[hidden] { display: none; }
+    .control-card { background: #fffaf6db; border: 1px solid #e9dbe6; border-radius: 22px; margin-top: 19px; padding: 20px clamp(15px, 4vw, 29px) 23px; box-shadow: 0 7px 26px #55405c0a; }
+    .scale { display: flex; justify-content: space-between; color: #6e5b76; font-size: 13px; margin-bottom: 16px; }
+    .scale output { font-weight: 650; color: #744c8f; font-variant-numeric: tabular-nums; }
+    input[type=range] { width: 100%; display: block; margin: 0; height: 35px; accent-color: #926ba7; cursor: ew-resize; touch-action: pan-y; }
+    .ends { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #9c8aa1; }
+    .actions { display: flex; gap: 10px; margin-top: 19px; }
+    .actions button { min-height: 45px; border-radius: 14px; border: 1px solid #d7c4db; flex: 1; color: #674975; background: #f8effa; font-size: 14px; font-weight: 650; transition: transform .12s ease, background .12s ease; }
+    .actions button.primary { background: #805791; border-color: #805791; color: #fff; }
+    .actions button:active { transform: scale(.97); }
+    .foot { margin: 22px auto 0; text-align: center; color: #998b98; font-size: 12px; line-height: 1.75; }
+    .foot a { display: inline-block; margin-top: 7px; text-decoration: underline; text-underline-offset: 4px; }
+    @media(max-width:480px) { .shell { width: calc(100% - 20px); } .flower-card { padding: 6px; border-radius: 21px; } .flower-wrap { border-radius: 16px; } .actions { gap: 8px; } .actions button { font-size: 12px; min-height: 46px; } .control-card { margin-top: 13px; padding: 17px 13px; } }
+    @media(prefers-reduced-motion:reduce) { *, *::before, *::after { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="brand"><span class="brandmark">FLORA</span><span class="status" id="loadStatus">准备动画…</span></header>
+    <h1 class="title">指尖绽放</h1>
+    <p class="subtitle">一朵鸢尾花 · 六十个呼吸瞬间<br />轻触并左右拖动花朵，决定它盛开的程度</p>
+
+    <section class="flower-card" aria-label="鸢尾花动画画面">
+      <div class="flower-wrap" id="scrubArea" role="slider" tabindex="0" aria-label="左右拖动控制花朵开放程度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <canvas id="flowerCanvas" width="912" height="684"></canvas>
+        <span id="dragHint" class="hint">← 触摸花朵，左右拖动 →</span>
+        <div id="loading" class="loading">正在准备第一帧…</div>
+      </div>
+    </section>
+
+    <section class="control-card" aria-label="帧动画进度控制">
+      <div class="scale"><span>花瓣开合进度</span><output id="readout">00% · 01 / 60</output></div>
+      <input type="range" id="progress" aria-label="拖动滑杆控制花瓣开合" min="0" max="59" step="1" value="0" />
+      <div class="ends"><span>花苞初醒</span><span>完全盛开</span></div>
+      <div class="actions">
+        <button type="button" id="closeBtn">◀ 缓缓合拢</button>
+        <button type="button" id="openBtn" class="primary">绽放 ▶</button>
+        <button type="button" id="pauseBtn">暂停</button>
+      </div>
+    </section>
+    <footer class="foot">由原始连续视频提取的真实 60 帧 WebP 动画 · 无需打开摄像头<br /><a href="./index.html">前往 Skill 手势控制实验版（需要 HTTPS 摄像头权限）</a></footer>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const COUNT = 60, DURATION = 5033;
+      const canvas = document.querySelector('#flowerCanvas');
+      const ctx = canvas.getContext('2d', { alpha: false });
+      const range = document.querySelector('#progress');
+      const output = document.querySelector('#readout');
+      const area = document.querySelector('#scrubArea');
+      const hint = document.querySelector('#dragHint');
+      const loading = document.querySelector('#loading');
+      const status = document.querySelector('#loadStatus');
+      const frames = new Array(COUNT);
+      let progress = 0, playing = false, direction = 1, raf = 0, lastTime = 0, activePointer = null, loaded = 0;
+      ctx.fillStyle = '#d5c7b9'; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      function render() {
+        const index = Math.max(0, Math.min(COUNT - 1, Math.round(progress * (COUNT - 1))));
+        const frame = frames[index];
+        if (frame && frame.complete && frame.naturalWidth) ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+        else if (frames[0]?.complete && frames[0].naturalWidth) ctx.drawImage(frames[0], 0, 0, canvas.width, canvas.height);
+        range.value = String(index);
+        const pct = Math.round(progress * 100);
+        output.textContent = `${String(pct).padStart(2,'0')}% · ${String(index + 1).padStart(2,'0')} / 60`;
+        area.setAttribute('aria-valuenow', String(pct));
+      }
+      function stop() { playing = false; lastTime = 0; if (raf) cancelAnimationFrame(raf); raf = 0; }
+      function setProgress(next, manual = false) {
+        if (manual) { stop(); hint.classList.add('hide'); }
+        progress = Math.max(0, Math.min(1, next));
+        render();
+      }
+      function tick(now) {
+        if (!playing) return;
+        if (lastTime) progress += direction * Math.min(80, now - lastTime) / DURATION;
+        lastTime = now;
+        if (progress <= 0 || progress >= 1) {
+          setProgress(progress);
+          stop();
+        } else { render(); raf = requestAnimationFrame(tick); }
+      }
+      function play(dir) {
+        stop(); direction = dir;
+        if ((dir > 0 && progress >= 1) || (dir < 0 && progress <= 0)) progress = dir > 0 ? 0 : 1;
+        playing = true; hint.classList.add('hide'); raf = requestAnimationFrame(tick);
+      }
+      function pointerProgress(event) {
+        const rect = area.getBoundingClientRect();
+        return (event.clientX - rect.left) / Math.max(1, rect.width);
+      }
+      area.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'mouse' && event.button !== 0) return;
+        activePointer = event.pointerId;
+        area.setPointerCapture(event.pointerId);
+        setProgress(pointerProgress(event), true);
+      });
+      area.addEventListener('pointermove', event => { if (event.pointerId === activePointer) setProgress(pointerProgress(event), true); });
+      const release = event => { if (event.pointerId === activePointer) { activePointer = null; if (area.hasPointerCapture(event.pointerId)) area.releasePointerCapture(event.pointerId); } };
+      area.addEventListener('pointerup', release); area.addEventListener('pointercancel', release);
+      area.addEventListener('keydown', event => {
+        if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+          event.preventDefault(); setProgress(progress + (event.key === 'ArrowRight' ? 1 : -1) / (COUNT - 1), true);
+        } else if (event.key === 'Home' || event.key === 'End') {
+          event.preventDefault(); setProgress(event.key === 'Home' ? 0 : 1, true);
+        }
+      });
+      range.addEventListener('input', event => setProgress(Number(event.target.value) / (COUNT - 1), true));
+      document.querySelector('#openBtn').addEventListener('click', () => play(1));
+      document.querySelector('#closeBtn').addEventListener('click', () => play(-1));
+      document.querySelector('#pauseBtn').addEventListener('click', stop);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
+
+      for (let i = 0; i < COUNT; i++) {
+        const image = new Image(); image.decoding = 'async';
+        image.onload = () => {
+          loaded++;
+          if (i === 0) { loading.hidden = true; render(); }
+          if (i === Math.round(progress * (COUNT - 1))) render();
+          status.textContent = loaded === COUNT ? '60 帧已就绪' : `加载中 ${loaded} / ${COUNT}`;
+        };
+        image.onerror = () => { status.textContent = `第 ${i+1} 帧加载失败，请检查文件路径`; if (i === 0) loading.textContent = '加载失败，请通过网页服务器打开'; };
+        frames[i] = image;
+        image.src = `./frames/lavender-iris/${i + 1}.webp`;
+      }
+      render();
+    })();
+  </script>
+</body>
+</html>
