@@ -18,8 +18,10 @@
 - [x] Run project validation and resolve every failure
   - Skill's `validate_project.py` passed: 60 sequential 912×684 decodable WebP frames, 0.69 MiB. `node --check app.js` and standalone inline preview JavaScript syntax check passed.
 - [ ] Verify desktop and mobile behavior locally
-- [ ] Record final evidence and delivery details
+  - **Pending:** No local graphical browser executable is available. Attempts to connect to the isolated localhost preview from another execution session failed; real Safari/Chrome camera permissions and touchscreen behavior still need user QA.
+- [x] Record final evidence and delivery details
+  - Skill validator passed 60 frames at 912×684 and 0.69 MiB; manual touch-preview HTML and standalone offline HTML built. ZIP integrity test passed. Source and old `dist/` preserved. GitHub commit `156a897eb314d8e181d51638d8d7fb04104ed607` contains all 60 WebP frames and the project source.
 
 ## Active stage
 
-Verify the preview through a local server and available browsers, then package and deliver. Camera gesture behavior still requires a real HTTPS phone test.
+Deliver the playable offline HTML and source ZIP, then ask the user to test the preview on their phone. The primary unresolved gate is real-browser UI and camera QA; an HTTPS host is required to exercise the gesture camera.

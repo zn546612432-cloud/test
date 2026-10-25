@@ -20,15 +20,16 @@
 - Environment: Passed 2026-10-25 — Python 3.12.14, FFmpeg, ffprobe, libwebp all available. No agent CLI detected (not required for media processing).
 - Media: Skill prepared 60 real 912×684 WebP frames from the 151-frame padded derivative, total 0.69 MiB; first and last frames visually reviewed; original unchanged.
 - Configuration: Skill scaffold completed at `gesture-sequence/`; `project.config.json` uses one 60-frame `lavender-iris` artwork and Pinch with `invert: false`. `preview.html` adds touch/mouse drag and slider controls without camera permission.
-- Desktop: Skill validator and JS syntax pass; visual browser testing still pending.
-- Mobile: Touch-based preview implemented; real-device test still pending.
+- Desktop: Skill validator and JS syntax pass, including bundled offline HTML's 60 embedded images. Local graphical browser executable unavailable, and isolated localhost server could not be accessed from a separate session. Visual browser QA pending.
+- Mobile: Responsive touch/mouse scrubber implemented in `preview.html` and fully embedded offline HTML; real-device test still pending.
 
 ## Warnings And Open Issues
 
 - The installed Skill processes but does not generate source video.
 - Resolved original 16:9 crop loss through a distinct 4:3 padded derivative. Background extension uses vertical edge-smearing and stretches the visible stem down through the new lower margin; appearance is acceptable for first preview but not true scene outpainting.
+- No real device/browser acceptance test was possible here. The MediaPipe gesture page requires camera permission over HTTPS and may rely on network access to load its model.
 - The new artwork needs continuity of petal count, scale, camera, stem, light, and background across the entire clip.
 
 ## Last Handoff
 
-- 2026-10-25: User uploaded an MP4. Preflight succeeded for duration and decoded frame count but revealed loss of side petals after 4:3 crop. Await approval to create a derivative padded 4:3 source or request a tighter-framed replacement. Then extract 60 WebP frames and validate.
+- 2026-10-25: Completed 60 WebP frames (912×684, 0.69 MiB), scaffolded Skill gesture site, manually scrubbable page, standalone offline HTML, and verified source ZIP. Committed sources and frames to `zn546612432-cloud/test` on main at `156a897eb314d8e181d51638d8d7fb04104ed607`; the user can test locally from the delivered offline file or request separate HTTPS publishing for full camera QA.
