@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f5f0" />
+  <meta name="description" content="FLORA · 指尖花开，AI 摄像头手势控制的 3D 鸢尾花互动艺术实验。" />
+  <title>FLORA · 指尖花开</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600&display=swap');
+    :root{--paper:#f7f5f0;--ink:#27232b;--soft:#8d888c;--purple:#8873a7;--line:#dfdbd6}
+    *{box-sizing:border-box} html,body{height:100%;margin:0} body{overflow:hidden;background:var(--paper);color:var(--ink);font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;-webkit-font-smoothing:antialiased}
+    button,input{font:inherit} button{cursor:pointer;-webkit-tap-highlight-color:transparent} button:focus-visible,input:focus-visible{outline:2px solid #967cbb;outline-offset:3px}
+    .page{position:relative;min-height:100svh;overflow:hidden;background:radial-gradient(ellipse 47% 54% at 51% 47%,#fdfcf9 0%,#f7f5f0 74%,#f2efe9 100%)}
+    .page:before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.17;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.11'/%3E%3C/svg%3E")}
+    header{height:76px;position:relative;z-index:4;display:flex;align-items:center;justify-content:space-between;margin:0 4.6%;border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:10px;color:#48414e}.mark{font-family:Georgia,serif;font-size:25px;font-weight:400;color:#a46f94;transform:rotate(12deg)}.brand strong{display:block;font-size:11px;letter-spacing:.28em;font-weight:700}.brand small{display:block;margin-top:4px;font-size:7px;letter-spacing:.16em;color:var(--soft)}
+    .top-nav{display:flex;align-items:center;gap:24px;font-size:9px;font-weight:600;letter-spacing:.17em;color:#a7a0a0}.top-nav span:last-child{color:#65556e;border-bottom:1px solid #a994b1;padding-bottom:8px}
+    main{position:relative;height:calc(100svh - 148px);min-height:380px}
+    .flower-area{position:absolute;inset:0;touch-action:none;cursor:grab}.flower-area:active{cursor:grabbing} #stage{width:100%;height:100%;display:block;outline:none}
+    .glow{position:absolute;pointer-events:none;z-index:0;left:50%;top:48%;transform:translate(-50%,-50%);width:min(64vw,650px);height:min(64vw,650px);border-radius:50%;background:radial-gradient(circle,rgba(236,215,245,.21),transparent 68%)}
+    .editorial{position:absolute;z-index:2;pointer-events:none}.eyebrow{display:block;color:#aaa0a0;font-size:9px;letter-spacing:.25em;line-height:1.8}.left-copy{left:4.6%;top:32%;max-width:220px}.left-copy h1{font-family:Georgia,'Times New Roman',serif;font-size:clamp(42px,5.3vw,91px);font-weight:400;line-height:.88;letter-spacing:-.08em;margin:21px 0 24px}.left-copy h1 em{font-weight:400;color:#4f4852}.left-copy p{font-family:'Noto Serif SC',serif;color:#a8a0a0;font-size:11px;letter-spacing:.17em;line-height:2}
+    .right-copy{right:5%;top:36%;width:168px}.right-copy strong{font-family:'Noto Serif SC',serif;font-size:19px;font-weight:400;display:block;margin:12px 0 4px}.right-copy .latin{font-family:Georgia,serif;font-size:17px;color:#514550}.right-copy p{line-height:1.9;color:#b5aeae;font-size:9px;letter-spacing:.12em;margin:16px 0 0}
+    .tiny-cross{color:#b5aaaf;margin-right:7px}
+    .bloom-counter{position:absolute;z-index:2;left:50%;top:6%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;color:#87748b;font-size:9px;letter-spacing:.2em;white-space:nowrap}
+    .bloom-counter b{font-family:Georgia,serif;font-size:16px;font-weight:400;letter-spacing:0}
+    .stage-note{position:absolute;z-index:2;bottom:16px;left:50%;transform:translateX(-50%);font-size:10px;color:#aba0a5;letter-spacing:.12em;pointer-events:none;text-align:center;white-space:nowrap}
+    footer{position:relative;z-index:4;height:72px;margin:0 4.6%;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .footer-caption{font-family:'Noto Serif SC',serif;font-size:11px;white-space:nowrap;color:#8e8389;letter-spacing:.12em}
+    .controls{display:flex;align-items:center;justify-content:center;gap:16px;min-width:260px;max-width:420px;flex:1}.controls label{font-size:9px;color:#b0a6a8;letter-spacing:.1em;white-space:nowrap}input[type=range]{appearance:none;-webkit-appearance:none;width:180px;max-width:25vw;height:2px;border-radius:99px;background:#d5cbd5;accent-color:var(--purple);cursor:pointer}input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;border:3px solid #faf8f4;background:#957daf;box-shadow:0 1px 8px #9b82a953}.controls output{font-family:Georgia,serif;font-size:15px;color:#7d6789;min-width:39px;text-align:right}
+    .actions{display:flex;gap:8px;align-items:center}.plain-btn{background:transparent;border:1px solid #ded8d9;color:#746674;padding:10px 12px;font-size:10px;letter-spacing:.05em;border-radius:99px}.camera-btn{display:flex;align-items:center;gap:7px;background:#514157;border:1px solid #514157;border-radius:99px;color:white;padding:11px 18px;white-space:nowrap;font-size:10px;letter-spacing:.05em;box-shadow:0 8px 28px #59466620}.camera-btn .dot{width:5px;height:5px;border-radius:50%;background:#dfa9c2}.camera-btn.live .dot{background:#91dab0;box-shadow:0 0 0 3px #91dab024}
+    .cam-panel{position:absolute;z-index:5;bottom:16px;right:4.7%;width:190px;overflow:hidden;border-radius:12px;background:#ddd3dc;box-shadow:0 9px 30px #3e344021;border:5px solid #ffffffb3;opacity:0;visibility:hidden;transform:translateY(12px);transition:.28s}.cam-panel.show{opacity:1;visibility:visible;transform:translateY(0)}.cam-media{position:relative;aspect-ratio:4/3;overflow:hidden}.cam-media video,.cam-media canvas{width:100%;height:100%;position:absolute;inset:0;object-fit:cover;transform:scaleX(-1)}.cam-caption{display:flex;justify-content:space-between;background:#f9f7f4;padding:7px 8px;font-size:8px;letter-spacing:.08em;color:#736479}.cam-caption .cam-on{color:#67a487}
+    .toast{position:absolute;z-index:10;top:90px;left:50%;transform:translate(-50%,-14px);border:1px solid #e8dde7;background:#fffaf9e6;backdrop-filter:blur(20px);border-radius:99px;color:#6d556e;font-size:11px;padding:10px 17px;max-width:min(90%,440px);text-align:center;opacity:0;pointer-events:none;transition:.3s}.toast.show{opacity:1;transform:translate(-50%,0)}
+    .loading{position:absolute;inset:0;display:grid;place-content:center;text-align:center;color:#806c82;z-index:1;transition:opacity .5s;pointer-events:none}.loading .ornament{font-size:43px;color:#b9a4cb;margin-bottom:14px}.loading small{font-size:10px;letter-spacing:.15em;color:#a7a0a4}.loading.hidden{opacity:0}
+    .help-overlay{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:24px;background:#342d3999;backdrop-filter:blur(8px)}.help-overlay.open{display:flex}.help-card{position:relative;background:#f8f6f3;color:#463b48;width:min(430px,100%);padding:34px 28px;border-radius:18px;box-shadow:0 40px 100px #251b2825}.help-card h2{font-family:Georgia,'Noto Serif SC',serif;font-weight:400;font-size:33px;margin:0 0 8px}.help-card>p{font-size:11px;color:#9b8c9d;line-height:1.9}.gesture-list{margin:23px 0;display:grid;gap:12px}.gesture-list div{display:flex;justify-content:space-between;border-bottom:1px solid #e7e0e4;padding-bottom:12px;gap:20px;font-size:13px}.gesture-list span:last-child{color:#9c8d9c;font-size:12px}.help-card button{background:#54445b;color:white;border:0;border-radius:99px;width:100%;padding:13px}
+    .fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;color:#9d8c9b;text-align:center;gap:12px;padding:25px;z-index:1}.fallback strong{font-size:15px}.fallback small{max-width:350px;font-size:11px;line-height:1.9}.fallback svg{max-height:50vh;width:min(280px,50vw);filter:drop-shadow(0 5px 13px #8c688c24)}
+    @media(max-width:900px){header{height:63px;margin:0 5%}.top-nav{gap:12px;font-size:8px}main{height:calc(100svh - 135px)}.left-copy{top:13%;left:5%}.left-copy h1{font-size:clamp(39px,7.7vw,67px)}.left-copy p{font-size:9px}.right-copy{top:15%;right:5%;width:130px}.right-copy strong{font-size:17px}.right-copy .latin{font-size:13px}.right-copy p{font-size:8px}footer{height:72px;margin:0 5%}.footer-caption{display:none}.controls{flex:1;min-width:0}.controls input{max-width:22vw}.camera-btn{padding:11px}.cam-panel{bottom:25px;width:160px}}
+    @media(max-width:600px){header{height:54px}.brand strong{font-size:10px}.top-nav span:not(:last-child){display:none}main{height:calc(100svh - 146px);min-height:370px}.left-copy{top:8%;left:6%}.left-copy h1{font-size:49px;margin:14px 0 12px}.left-copy p{font-size:9px}.right-copy{right:6%;top:10%;text-align:right;width:105px}.right-copy .latin{font-size:12px}.right-copy strong{margin:8px 0 1px}.right-copy p{display:none}.bloom-counter{top:27%;font-size:8px}.glow{width:105vw;height:105vw}.stage-note{bottom:16px;font-size:9px}.cam-panel{bottom:35px;right:5%;width:125px}.cam-caption{padding:5px;font-size:7px}footer{height:92px;flex-wrap:wrap;align-content:center;row-gap:12px;column-gap:10px}.controls{width:100%;order:2;justify-content:space-between;max-width:none}.controls input{width:100%;max-width:none;flex:1}.controls label{font-size:9px}.actions{order:1;width:100%;justify-content:space-between}.plain-btn{padding:7px 10px;font-size:9px}.camera-btn{font-size:10px;padding:8px 14px}.flower-area{inset:0 -5%}.toast{top:65px}}
+    @media(max-height:710px) and (max-width:600px){.left-copy{top:5%}.left-copy h1{font-size:39px}.right-copy{top:7%}.bloom-counter{top:25%}.stage-note{display:none}.cam-panel{bottom:9px;width:100px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="brand"><span class="mark">✳</span><div><strong>FLORA</strong><small>FORM IN MOTION</small></div></div>
+      <nav class="top-nav" aria-label="艺术作品导航"><span>STUDIES</span><span>PEONY</span><span>IRIS</span><span>CAMELLIA</span></nav>
+    </header>
+    <main>
+      <div class="glow"></div>
+      <div class="flower-area" id="flowerArea" aria-label="可拖拽旋转的三维鸢尾花"><canvas id="stage"></canvas></div>
+      <div class="loading" id="loading"><div class="ornament">✽</div><small>GROWING AN IRIS…</small></div>
+      <div class="fallback" id="fallback"><svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><radialGradient id="pg"><stop stop-color="#ead5ee"/><stop offset=".76" stop-color="#ae8bc2"/><stop offset="1" stop-color="#9070b2"/></radialGradient></defs><path d="M120 128Q120 220 113 285" stroke="#667b47" stroke-width="9" fill="none"/><path d="M118 150Q88 67 114 19Q173 42 137 128" fill="url(#pg)"/><path d="M122 146Q144 38 177 42Q196 95 131 145" fill="url(#pg)"/><path d="M114 145Q87 34 52 61Q47 108 112 145" fill="url(#pg)"/><path d="M118 143Q35 95 15 148Q38 213 123 156" fill="url(#pg)"/><path d="M128 148Q207 94 229 151Q191 216 119 158" fill="url(#pg)"/><path d="M117 150Q72 179 99 243Q144 259 145 203Q143 170 117 150" fill="url(#pg)"/><path d="M105 151L124 171L139 151" fill="#e5af61"/></svg><strong>此浏览器无法启用 3D 渲染</strong><small>请使用 iPhone Safari、Chrome 或其他支持 WebGL 的浏览器打开。摄像头识别也需要 HTTPS 和授权。</small></div>
+      <div class="editorial left-copy"><span class="eyebrow"><span class="tiny-cross">─</span>BLOOM / 02</span><h1>In full<br><em>bloom.</em></h1><p>让手势，唤醒一朵花。</p></div>
+      <div class="editorial right-copy"><span class="eyebrow">02 /</span><strong>鸢尾</strong><div class="latin">Iris · Iris germanica</div><p>FLOWER LANGUAGE<br>希望 · 信念</p></div>
+      <div class="bloom-counter"><span>OPENNESS</span><b id="bloomTop">72%</b></div>
+      <div class="stage-note" id="stageNote">拖动旋转花朵 · 触摸下方滑杆控制开合</div>
+      <aside class="cam-panel" id="camPanel" aria-label="摄像头实时追踪画面"><div class="cam-media"><video id="camVideo" autoplay muted playsinline></video><canvas id="landmarks"></canvas></div><div class="cam-caption"><span>● HAND TRACKING</span><span class="cam-on" id="camScore">ACTIVE</span></div></aside>
+    </main>
+    <footer>
+      <span class="footer-caption">捏合手指，控制花朵开合</span>
+      <div class="controls"><label for="bloomRange">含苞</label><input type="range" id="bloomRange" min="0" max="100" value="72" aria-label="花朵绽放程度" /><label for="bloomRange">绽放</label><output id="bloomOutput">72%</output></div>
+      <div class="actions"><button class="plain-btn" id="helpBtn" type="button">玩法 ↗</button><button class="plain-btn" id="resetBtn" type="button">复位</button><button class="camera-btn" id="cameraBtn" type="button"><span class="dot"></span><span id="cameraText">开启手势互动</span></button></div>
+    </footer>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+  <section class="help-overlay" id="helpOverlay" aria-modal="true" role="dialog" aria-labelledby="helpTitle"><div class="help-card"><h2 id="helpTitle">A flower at your fingertips.</h2><p>让一朵花跟随你的指尖呼吸。摄像头影像只在浏览器本地处理，不会上传。</p><div class="gesture-list"><div><span>👌 拇指与食指</span><span>捏紧闭合 · 张开绽放</span></div><div><span>🖐️ 移动手掌</span><span>微微转动花朵</span></div><div><span>👆 单指拖拽</span><span>自由旋转视角</span></div><div><span>↔️ 下方滑杆</span><span>不启动摄像头也能玩</span></div></div><button id="closeHelp" type="button">让花开吧 ✦</button></div></section>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
