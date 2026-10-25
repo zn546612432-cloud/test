@@ -12,6 +12,8 @@ A mobile-first experiment inspired by an interactive, hand-controlled iris flowe
 ## Next steps
 
 1. Produce and approve a fixed-camera, continuous lavender iris bloom animation video (bud → full bloom, with consistent stem and framing).
+   - Ready-to-use production and negative prompts: [`prompts/lavender-iris-bloom-video.md`](prompts/lavender-iris-bloom-video.md).
+   - Skill task and validation status: [`.agents/tasks/build-gesture-animation.md`](.agents/tasks/build-gesture-animation.md).
 2. Use the included skill's `prepare_media.py` to select up to 60 4:3 WebP frames.
 3. Use Pinch as the main gesture, validate the animation and test camera permissions on a real iPhone over HTTPS.
 
