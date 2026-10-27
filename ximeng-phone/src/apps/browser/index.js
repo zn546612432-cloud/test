@@ -1,0 +1,5 @@
+import {btn,card} from '../../system/ui.js';
+import {HACKER_BOUNTY_ID,HACKER_MAIL_ID,HACKER_TARGET,advanceHackerMission} from '../mirage/mission.js';
+export const manifest={id:'browser',name:'浏览器',icon:5,defaultRoute:'/',kicker:'SAFARI'};
+export const render=({store},loc)=>loc.route==='/mission-search'&&loc.params?.orderId===HACKER_BOUNTY_ID?`<div class="page-pad"><span class="eyebrow">任务线索 / 浏览器</span><div class="large-title">浏览器</div><div class="search-line">⌕　${HACKER_TARGET}</div>${card('<strong>搜索记录</strong><p>已记录剧情目标关键词。更多网页与线索将在浏览器软件开发时补充。</p>')}${btn('browser-mission-done','返回 KIRA · 下一步','button-quiet wide')}</div>`:`<div class="page-pad"><div class="large-title">浏览器</div><div class="search-line">⌕　搜索或输入网址</div><div class="section-heading">常用项目</div>${card('<strong>本机内容</strong><p>为了保持游戏世界一致，外部网页功能暂未启用。</p>')}${btn('browser-files','查看文件','button-quiet wide')}</div>`;
+export const handle=(a,t,c)=>{if(a==='browser-files')c.router.open({appId:'files',route:'/'});if(a==='browser-mission-done'){advanceHackerMission(c.store,2);c.router.open({appId:'kira',route:'/mail/'+HACKER_MAIL_ID});}};
